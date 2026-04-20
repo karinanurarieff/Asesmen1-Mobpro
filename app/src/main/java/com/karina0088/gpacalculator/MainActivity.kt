@@ -9,16 +9,20 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.*
 import com.karina0088.gpacalculator.ui.theme.GPACalculatorTheme
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,6 +54,7 @@ fun AppNav() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
+
     var tugas by remember { mutableStateOf("") }
     var uts by remember { mutableStateOf("") }
     var uas by remember { mutableStateOf("") }
@@ -60,7 +65,14 @@ fun HomeScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("GPA Calculator") })
+            TopAppBar(
+                title = { Text(stringResource(R.string.title)) },
+                actions = {
+                    IconButton(onClick = { }) {
+                        Text("i")
+                    }
+                }
+            )
         }
     ) { padding ->
 
@@ -71,22 +83,51 @@ fun HomeScreen(navController: NavController) {
                 .padding(16.dp)
         ) {
 
-            TextField(value = tugas, onValueChange = { tugas = it }, label = { Text("Nilai Tugas") })
-            TextField(value = uts, onValueChange = { uts = it }, label = { Text("Nilai UTS") })
-            TextField(value = uas, onValueChange = { uas = it }, label = { Text("Nilai UAS") })
+            TextField(
+                value = tugas,
+                onValueChange = { tugas = it },
+                label = { Text("Nilai Tugas") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextField(
+                value = uts,
+                onValueChange = { uts = it },
+                label = { Text("Nilai UTS") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextField(
+                value = uas,
+                onValueChange = { uas = it },
+                label = { Text("Nilai UAS") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text("Mode:")
             Row {
-                RadioButton(selected = mode == "Angka", onClick = { mode = "Angka" })
+                RadioButton(
+                    selected = mode == "Angka",
+                    onClick = { mode = "Angka" }
+                )
                 Text("Angka")
 
                 Spacer(modifier = Modifier.width(10.dp))
 
-                RadioButton(selected = mode == "Huruf", onClick = { mode = "Huruf" })
+                RadioButton(
+                    selected = mode == "Huruf",
+                    onClick = { mode = "Huruf" }
+                )
                 Text("Huruf")
             }
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             if (error.isNotEmpty()) {
                 Text(error, color = MaterialTheme.colorScheme.error)
@@ -95,28 +136,37 @@ fun HomeScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(10.dp))
 
             Button(onClick = {
+
                 if (tugas.isEmpty() || uts.isEmpty() || uas.isEmpty()) {
                     error = "Semua input harus diisi"
                 } else {
-                    val t = tugas.toFloat()
-                    val u = uts.toFloat()
-                    val ua = uas.toFloat()
 
-                    val hasil = (0.3 * t) + (0.3 * u) + (0.4 * ua)
+                    val t = tugas.toFloatOrNull()
+                    val u = uts.toFloatOrNull()
+                    val ua = uas.toFloatOrNull()
 
-                    val output = if (mode == "Huruf") {
-                        when {
-                            hasil >= 85 -> "A"
-                            hasil >= 70 -> "B"
-                            hasil >= 60 -> "C"
-                            else -> "D"
-                        }
+                    if (t == null || u == null || ua == null) {
+                        error = "Input harus berupa angka"
                     } else {
-                        String.format("%.2f", hasil)
-                    }
+                        error = ""
 
-                    navController.navigate("result/$output")
+                        val hasil = (0.3 * t) + (0.3 * u) + (0.4 * ua)
+
+                        val output = if (mode == "Huruf") {
+                            when {
+                                hasil >= 85 -> "A"
+                                hasil >= 70 -> "B"
+                                hasil >= 60 -> "C"
+                                else -> "D"
+                            }
+                        } else {
+                            String.format(Locale.US, "%.2f", hasil)
+                        }
+
+                        navController.navigate("result/$output")
+                    }
                 }
+
             }) {
                 Text("Hitung")
             }
@@ -169,7 +219,8 @@ fun ResultScreen(navController: NavController, nilai: String) {
 
             Image(
                 painter = painterResource(id = R.drawable.student),
-                contentDescription = "Student"
+                contentDescription = "Student",
+                modifier = Modifier.size(200.dp)
             )
         }
     }
